@@ -1,130 +1,81 @@
+const passport = require('passport');
 var express = require('express');
 var router = express.Router();
+const { Animal } = require('../initModels');
 
-router.get('/', async function (req, res, next) {
-  // const animals = await animalService.getAll();
-  let animals =  [
-    {
-      "Id": 1,
-      "Name": "Coco",
-      "Species": "Dwarf Hamster",
-      "Birthday": "2020-02-12",
-      "Temperament": "calm, scared",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 2,
-      "Name": "Ted",
-      "Species": "Tedy bear hamster",
-      "Birthday": "2021-02-12",
-      "Temperament": "calm, scared",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 3,
-      "Name": "Coco",
-      "Species": "Jack-Russel",
-      "Birthday": "2020-02-12",
-      "Temperament": "energetic",
-      "Size": "medium",
-      "Adopted": false
-    },
-    {
-      "Id": 4,
-      "Name": "Everrest",
-      "Species": "Budgy",
-      "Birthday": "2019-02-12",
-      "Temperament": "calm, happy",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 5,
-      "Name": "Rocko",
-      "Species": "Tortouse",
-      "Birthday": "2020-02-12",
-      "Temperament": "calm, lazy",
-      "Size": "medium",
-      "Adopted": false
-    },
-    {
-      "Id": 6,
-      "Name": "Goldy",
-      "Species": "Gold Fish",
-      "Birthday": "2023-02-12",
-      "Temperament": "calm",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 7,
-      "Name": "Lizzy",
-      "Species": "Lizzard",
-      "Birthday": "2020-02-12",
-      "Temperament": "calm,lazy",
-      "Size": "medium",
-      "Adopted": false
-    },
-    {
-      "Id": 8,
-      "Name": "Goga",
-      "Species": "Bearder Dragon",
-      "Birthday": "2018-02-12",
-      "Temperament": "calm, lazy, scared",
-      "Size": "large",
-      "Adopted": true
-    },
-    {
-      "Id": 9,
-      "Name": "Tweet Tweet",
-      "Species": "Parrot",
-      "Birthday": "2020-02-12",
-      "Temperament": "calm, happy",
-      "Size": "large",
-      "Adopted": false
-    },
-    {
-      "Id": 10,
-      "Name": "Toothless",
-      "Species": "Corn snake ",
-      "Birthday": "2017-02-12",
-      "Temperament": "scared",
-      "Size": "medium",
-      "Adopted": false
-    },
-    {
-      "Id": 11,
-      "Name": "Sophie",
-      "Species": "Dwarf Hamster",
-      "Birthday": "2020-02-12",
-      "Temperament": "calm, scared",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 12,
-      "Name": "Teddy",
-      "Species": "Teddy bear hamster",
-      "Birthday": "2021-02-12",
-      "Temperament": "calm, scared",
-      "Size": "small",
-      "Adopted": false
-    },
-    {
-      "Id": 13,
-      "Name": "Roger",
-      "Species": "Parrot",
-      "Birthday": "2020-02-18",
-      "Temperament": "calm, happy",
-      "Size": "large",
-      "Adopted": false
-    }
-   ]
 
-  res.render('animals', { user: null, animals: animals });
+function ensureMemberOrAdmin(req, res, next) {
+  if (req.isAuthenticated() && (req.user.roleId === 2 || req.user.roleId === 1)) {
+    return next();
+  }
+  res.redirect('/login');
+}
+
+//GET animals listing
+router.get('/', ensureMemberOrAdmin, async function (req, res, next) {
+  try {
+    const animals = await Animal.findAll();
+    res.render('animals', { user: req.user, animals: animals });  // Pass the user object to the view
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/add', ensureMemberOrAdmin, async function(req, res, next) {
+  try {
+    const { name, species, temperament, size } = req.body;
+    await Animal.create({ name, species, temperament, size });
+    res.redirect('/animals');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/delete/:id', ensureMemberOrAdmin, async function(req, res, next) {
+  try {
+    await Animal.destroy({
+      where: { id: req.params.id }
+    });
+    res.redirect('/animals');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/update/:id', ensureMemberOrAdmin, async function(req, res, next) {
+  try {
+    const { name, species, temperament, size } = req.body;
+    await Animal.update({ name, species, temperament, size }, {
+      where: { id: req.params.id }
+    });
+    res.redirect('/animals');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/adopt/:id', ensureMemberOrAdmin, async function(req, res, next) {
+  try {
+    await Animal.update({ adopted: true }, {
+      where: { id: req.params.id }
+    });
+    res.redirect('/animals');
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+router.post('/cancel-adoption/:id', async function(req, res, next) {
+  try {
+    const animalId = req.params.id;
+    await Animal.update({ adopted: false }, {
+      where: { id: animalId }
+    });
+    res.redirect('/animals');
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
-

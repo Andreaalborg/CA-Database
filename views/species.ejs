@@ -21,14 +21,14 @@
           <% species.forEach(function(species) { %>
             <div class="row px-3 py-1 w-100">
               <span class="col py-1 bg-light">
-                <%=species.Id%>
+                <%=species.id%>
               </span>
               <span class="col py-1 bg-light">
-                <%=species.Name%>
+                <%=species.name%>
               </span>
               <span class="col py-1 bg-light text-center">
-                <button class="btn-sm btn-warning" onclick="updateSpecies( <%=species.Id%>)">Update species</button>
-                <button class="btn-sm btn-danger" onclick="deleteSpecies( <%=species.Id%>)">Delete species</button>
+                <button class="btn-sm btn-warning" onclick="updateSpecies( <%=species.id%>)">Update species</button>
+                <button class="btn-sm btn-danger" onclick="deleteSpecies( <%=species.id%>)">Delete species</button>
               </span>
             </div>
             <% }); %>
@@ -44,6 +44,31 @@
             </div>
       </div>
     </div>
+    <script>
+      function updateSpecies(id) {
+        const newName = prompt("Enter new species name: ");
+        if (newName) {
+          fetch(`/species/update/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: newName })
+          }).then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => alert('Error:', error));
+        }
+      }
+    
+      function deleteSpecies(id) {
+        fetch(`/species/${id}`, {
+          method: 'DELETE'
+        }).then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(error => alert('Error:', error));
+      }
+    </script>
+    
 </body>
 
 </html>

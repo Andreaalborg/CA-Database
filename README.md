@@ -24,22 +24,44 @@ If you are unsure of any instructions for the course assignment, contact out to 
 
 # Application Installation and Usage Instructions
 
+1 Clone the repo to your local machine
+2 Navigate into the project folder and run npm install to install dependencies.
+3 Start the app with npm start.
+4 Open your web browser and go to http://localhost:3000.
+
 # Environment Variables
 
+DB_HOST: The database host URL
+DB_USER: The database username
+DB_PASSWORD: The database password
+DB_NAME: The name of the database
 
 # Additional Libraries/Packages
 
+bcrypt: Used for password hashing.
+passport: Utilized for user authentication.
+sequelize: ORM used for database manipulation.
 
 # NodeJS Version Used
 
+ tested on NodeJS version 14.17.0.
 
 # DATABASE
 
+The application uses MySQL database. The database is named adoptiondb and it consists of tables like Animals, Users, and Adoptions
 
 # DATAINSERTS
 
+Data is primarily inserted through Sequelize, based on JSON files that populate the initial state of the database. These JSON files are located in /public/json.
 
 # DATABASEACCESS
 
+A database user named dabcaowner is created with database owner permissions. The password for this user is dabca1234.
+CREATE USER 'dabcaowner'@'localhost' IDENTIFIED BY 'dabca1234';
+GRANT ALL PRIVILEGES ON adoptiondb.* TO 'dabcaowner'@'localhost';
+
 
 # DATABASEQUERIES
+
+Queries are executed through Sequelize's ORM except for initial data inserts. Special query buttons are implemented on the "Animals" page for filtering the table based on various criteria.
+

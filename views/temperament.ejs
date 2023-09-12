@@ -22,14 +22,14 @@
           <% temperament.forEach(function(temp) { %>
             <div class="row px-3 py-1 w-100">
               <span class="col py-1 bg-light">
-                <%=temp.Id%>
+                <%=temp.id%>
               </span>
               <span class="col py-1 bg-light">
-                <%=temp.Name%>
+                <%=temp.name%>
               </span>
               <span class="col py-1 bg-light text-center">
-                <button class="btn-sm btn-warning" onclick="updateTemperament(<%=temp.Id%>)">Update temperament</button>
-                <button class="btn-sm btn-danger" onclick="deleteTemperament(<%=temp.Id%>)">Delete temperament</button>
+                <button class="btn-sm btn-warning" onclick="updateTemperament(<%=temp.id%>)">Update temperament</button>
+                <button class="btn-sm btn-danger" onclick="deleteTemperament(<%=temp.id%>)">Delete temperament</button>
               </span>
             </div>
             <% }); %>
@@ -45,6 +45,31 @@
             </div>
       </div>
     </div>
+    <script>
+      function updateTemperament(id) {
+        const newName = prompt("Enter new temperament name: ");
+        if (newName) {
+          fetch(`/temperament/update/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: newName })
+          }).then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => alert('Error:', error));
+        }
+      }
+    
+      function deleteTemperament(id) {
+        fetch(`/temperament/${id}`, {
+          method: 'DELETE'
+        }).then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(error => alert('Error:', error));
+      }
+    </script>
+    
 </body>
 
 </html>

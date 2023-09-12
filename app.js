@@ -1,19 +1,22 @@
-
 require('dotenv').config();
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
 
-var indexRouter = require('./routes/index');
-var animalsRouter = require('./routes/animals');
-var speciesRouter = require('./routes/species');
-var temperamentRouter = require('./routes/temperament');
+const { Animal, User, Role, Species, Temperament, sequelize } = require('./initModels');
 
-var app = express();
+const indexRouter = require('./routes/index');
+const animalsRouter = require('./routes/animals');
+const speciesRouter = require('./routes/species');
+const temperamentRouter = require('./routes/temperament');
 
-// view engine setup
+const app = express();
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -23,26 +26,61 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// initialize passport
+app.use(session({ secret: 'your-secret-key', resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+//passport
+passport.use(new LocalStrategy(
+  async function(username, password, done) {
+    try {
+      const user = await User.findOne({ where: { username: username } });
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      if (user.password !== password) {  // Note: Use hashed password in production
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async function(id, done) {
+  try {
+    const user = await User.findByPk(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
+
+//Routes
 app.use('/', indexRouter);
 app.use('/animals', animalsRouter);
 app.use('/species', speciesRouter);
 app.use('/temperament', temperamentRouter);
 
-// catch 404 and forward to error handler
+// health-check
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
 });
 
 module.exports = app;
-
